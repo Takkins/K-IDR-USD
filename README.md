@@ -1,0 +1,2 @@
+# K-IDR-USD
+IDR-to-USD=USD-to-IDR
