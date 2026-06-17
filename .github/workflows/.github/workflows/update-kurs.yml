@@ -1,0 +1,32 @@
+name: Update Kurs USD-IDR
+
+on:
+  schedule:
+    - cron: '0 1 * * *'  # Setiap hari jam 08:00 WIB (01:00 UTC)
+  workflow_dispatch:  # Bisa trigger manual juga
+
+permissions:
+  contents: write
+
+jobs:
+  update-kurs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch kurs USD-IDR
+        run: |
+          curl -s https://api.exchangerate-api.com/v4/latest/USD -o response.json
+          RATE=$(jq '.rates.IDR' response.json)
+          DATE=$(date +"%Y-%m-%d")
+          TIME=$(date +"%H:%M:%S UTC")
+          echo "{\"rate\": $RATE, \"date\": \"$DATE\", \"updated_at\": \"$TIME\", \"base\": \"USD\", \"target\": \"IDR\"}" > kurs.json
+          cat kurs.json
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add kurs.json
+          git diff --staged --quiet || git commit -m "Update kurs USD-IDR $(date +'%Y-%m-%d')"
+          git push
